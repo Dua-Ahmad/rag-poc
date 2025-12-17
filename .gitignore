@@ -1,0 +1,15 @@
+echo "__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.log
+venv/
+.env/
+.venv/
+.ipynb_checkpoints
+.DS_Store
+Thumbs.db
+*.pid
+*.tar
+*.log" 
