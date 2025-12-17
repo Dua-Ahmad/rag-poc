@@ -5,10 +5,7 @@ This project implements a Retrieval-Augmented Generation pipeline using:
 - Sentence Transformers for embeddings
 - Unstructured for PDF parsing
 - Docker Compose for orchestration
-- ### LLM Runtime
-    This project uses **Ollama** for local, open-source LLM inference.
-    - **Runtime:** Ollama
-    - **Model:** `qwen2.5:1.5b`
+- **Ollama** for local, open-source LLM inference. **Model:** `qwen2.5:1.5b`
 
 
 ## How to run
