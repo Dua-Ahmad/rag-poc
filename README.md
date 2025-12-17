@@ -1,5 +1,5 @@
 
-echo "# RAG Pipeline with Docker
+echo "# RAG Pipeline with Docker - using GPU
 This project implements a Retrieval-Augmented Generation pipeline using:
 - Qdrant for vector storage
 - Sentence Transformers for embeddings
