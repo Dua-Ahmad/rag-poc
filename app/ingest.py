@@ -3,6 +3,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance, PointStruct
 from pypdf import PdfReader
 import uuid
+import os
 
 EMBED_MODEL = "intfloat/multilingual-e5-base"
 COLLECTION = "documents"
@@ -56,5 +57,16 @@ def ingest_pdf(path, language="en"):
         points=points
     )
 
+
+# ---------- FOLDER ingestion ----------
+def ingest_PDF_folder(folder_path, language="en"):
+    for root, _, files in os.walk(folder_path):
+        for filename in files:
+            if filename.lower().endswith(".pdf"):
+                full_path = os.path.join(root, filename)
+                print(f"Ingesting: {full_path}")
+                ingest_pdf(full_path, language=language)
+
 if __name__ == "__main__":
-    ingest_pdf("/app/PNG_Strategy_to_Prevent_GBV.pdf", language="en")
+    ingest_PDF_folder("/app/data/pdgs", language="en")
+
