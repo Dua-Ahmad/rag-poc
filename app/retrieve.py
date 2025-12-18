@@ -9,10 +9,10 @@ COLLECTION = "documents"
 embedder = SentenceTransformer(EMBED_MODEL)
 qdrant = QdrantClient(host="qdrant", port=6333)
 
-def retrieve(query, top_k=2):
+def retrieve(query, top_k=5):
     # 1. Embed the query
     query_vector = embedder.encode(
-        f"query: {query}",
+        f"query: information about {query}",
         normalize_embeddings=True
     ).tolist()
 
@@ -32,18 +32,33 @@ def retrieve(query, top_k=2):
     for hit in hits.points:
         payload = None
 
-        # Case 1: new-style object
+       # New-style Qdrant result
         if hasattr(hit, "payload"):
             payload = hit.payload
 
-        # Case 2: tuple return (varies by version)
+        # Older / tuple-style fallback
         elif isinstance(hit, tuple):
             for item in hit:
                 if isinstance(item, dict):
                     payload = item
                     break
 
-        if payload and "text" in payload:
-            contexts.append(payload["text"][:MAX_CHARS])
+        if not payload:
+            continue
+
+        source = payload.get("source", "unknown")
+        text = payload.get("text", "")
+
+        if text.strip():
+            contexts.append({
+                "source": os.path.basename(source),
+                "text": text[:MAX_CHARS],
+                "score": hit.score,
+            })
+
+    # print("QUERY:", query)
+    # print("TOP HITS RAW:")
+    # for hit in hits:
+    #     print(hit)
 
     return contexts
