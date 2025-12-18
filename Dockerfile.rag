@@ -3,7 +3,10 @@ FROM python:3.11-slim
 
 # Install minimal libs that provide libGL.so.1 for OpenCV
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1 libglib2.0-0 && rm -rf /var/lib/apt/lists/*
+    libgl1 libglib2.0-0 \
+    tesseract-ocr \
+    poppler-utils \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir \
     qdrant-client \

@@ -1,6 +1,7 @@
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance, PointStruct
+from unstructured.partition.pdf import partition_pdf
 from pypdf import PdfReader
 import uuid
 import os
@@ -25,14 +26,37 @@ if not qdrant.collection_exists(COLLECTION):
     )
 
 def ingest_pdf(path, language="en"):
-    reader = PdfReader(path)
-
+    print(f"Processing: {path}")
     texts = []
-    for page in reader.pages:
-        text = page.extract_text()
-        if text:
-            texts.append(text)
 
+    # ---- Try normal PDF extraction first ----
+    try:
+        reader = PdfReader(path)
+        for page in reader.pages:
+            text = page.extract_text()
+            if text and len(text.strip()) > 50:
+                texts.append(text.strip())
+    except Exception as e:
+        print(f"pypdf failed: {e}")
+
+   # ---- Fallback to unstructured (scanned PDFs) ----
+    if not texts:
+        print("Falling back to unstructured PDF parsing...")
+        elements = partition_pdf(
+            filename=path,
+            strategy="auto",          # auto-detect text vs scanned
+            infer_table_structure=True,
+        )
+        for el in elements:
+            if el.text and len(el.text.strip()) > 50:
+                texts.append(el.text.strip())
+
+    # If still no text, skip
+    if not texts:
+        print("No text extracted, skipping.")
+        return
+    
+    # Embed and upsert to Qdrant
     embeddings = embedder.encode(
         [f"passage: {t}" for t in texts],
         normalize_embeddings=True
@@ -68,5 +92,5 @@ def ingest_PDF_folder(folder_path, language="en"):
                 ingest_pdf(full_path, language=language)
 
 if __name__ == "__main__":
-    ingest_PDF_folder("/app/data/pdgs", language="en")
+    ingest_PDF_folder("/app/data/pdfs", language="en")
 

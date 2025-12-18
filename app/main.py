@@ -6,8 +6,15 @@ OLLAMA_URL = "http://ollama:11434/api/generate"
 MODEL = "qwen2.5:1.5b"
 
 def compress_context(chunks, max_chars=700):
-    text = " ".join(chunks)
-    return text[:max_chars]
+    blocks = []
+
+    for c in chunks:
+        blocks.append(
+            f"[Source: {c['source']}]\n{c['text']}"
+        )
+
+    combined = "\n\n".join(blocks)
+    return combined[:max_chars]
 
 def ask(query):
     context = retrieve(query)
@@ -15,6 +22,7 @@ def ask(query):
     prompt = f"""
 You are a helpful assistant.
 Answer ONLY using the context. If no context, say: "No context given".
+Cite the source document name in your answer.
 If the answer is not in the context, say: "I do not know".
 
 Context:
