@@ -9,6 +9,42 @@ COLLECTION = "documents"
 embedder = SentenceTransformer(EMBED_MODEL)
 qdrant = QdrantClient(host="qdrant", port=6333)
 
+from collections import defaultdict
+
+def documents_mentioning(query, top_k=20):
+    hits = retrieve(query, top_k=top_k)
+
+    grouped = defaultdict(list)
+
+    for h in hits:
+        grouped[h["filename"]].append(h)
+
+    return grouped
+
+
+def list_documents():
+    hits, _ = qdrant.scroll(
+        collection_name=COLLECTION,
+        with_payload=True,
+        limit=1000
+    )
+
+    docs = {}
+
+    for p in hits:
+        payload = p.payload or {}
+        source = payload.get("source")
+
+        if not source:
+            continue
+
+        filename = os.path.basename(source)
+        ext = os.path.splitext(filename)[1].lower()
+
+        docs[filename] = ext
+
+    return docs
+
 def retrieve(query, top_k=5):
     # 1. Embed the query
     query_vector = embedder.encode(
@@ -54,6 +90,8 @@ def retrieve(query, top_k=5):
                 "source": os.path.basename(source),
                 "text": text[:MAX_CHARS],
                 "score": hit.score,
+                "filename": os.path.basename(source),
+                "file_type": os.path.splitext(source)[1].lower(),
             })
 
     # print("QUERY:", query)

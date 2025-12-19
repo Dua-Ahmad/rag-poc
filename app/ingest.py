@@ -84,6 +84,7 @@ def ingest_pdf(path, language="en"):
 
 # ---------- FOLDER ingestion ----------
 def ingest_PDF_folder(folder_path, language="en"):
+    print(f"🔍 Scanning folder recursively: {folder_path}")
     for root, _, files in os.walk(folder_path):
         for filename in files:
             if filename.lower().endswith(".pdf"):
@@ -92,5 +93,5 @@ def ingest_PDF_folder(folder_path, language="en"):
                 ingest_pdf(full_path, language=language)
 
 if __name__ == "__main__":
-    ingest_PDF_folder("/app/data/pdfs", language="en")
+    ingest_PDF_folder("/app/data", language="en")
 
